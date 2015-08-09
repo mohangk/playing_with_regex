@@ -5,123 +5,55 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <string.h>
+#include "uthash/uthash.h"
 #include "text_cleanser.h"
 #include "preg_replace.h"
 
-char *cleanse(char *subject);
-
-char *cleanse_inbetween_commas(char *subject) {
-  static pcre2_code *re0  = NULL;
-
-  if(re0 == NULL) {
-    re0 = compile("((?![a-zA-Z]+),(?=[a-zA-Z+]))");
-  }
+char *replace(char *re, char *replacement, char *subject) {
 
   char *output;
-  output = preg_replace(re0, " ", subject);
+  output = preg_replace(re, replacement, subject);
   free(subject);
   return output;
+
+}
+
+char *cleanse_inbetween_commas(char *subject) {
+  return replace("((?![a-zA-Z]+),(?=[a-zA-Z+]))", " ", subject);
 }
 
 char *cleanse_quotes(char *subject) {
-  static pcre2_code *re1  = NULL;
-
-  if(re1 == NULL) {
-    re1 = compile("['\"`*]");
-  }
-
-  char *output;
-  output = preg_replace(re1, "", subject);
-  free(subject);
-  return output;
+  return replace("['\"`*]", "", subject);
 }
 
 char *cleanse_brackets(char *subject) {
-  static pcre2_code *re2  = NULL;
-
-  if(re2 == NULL) {
-    re2 = compile("[\\(\\)\\[\\]\\{\\}]");
-  }
-
-  char *output;
-  output =  preg_replace(re2, " " , subject);
-  free(subject);
-  return output;
+  return replace("[\\(\\)\\[\\]\\{\\}]", " " , subject);
 }
 
 char *cleanse_html_entities(char *subject) {
-  static pcre2_code *re3  = NULL;
-
-  if(re3 == NULL) {
-    re3 = compile("&#?[a-zA-Z0-9]+;");
-  }
-  char *output;
-  output = preg_replace(re3, " ", subject);
-  free(subject);
-  return output;
+  return replace("&#?[a-zA-Z0-9]+;", " ", subject);
 }
 
 char *cleanse_newline_characters(char *subject) {
-  static pcre2_code *re4  = NULL;
-
-  if(re4 == NULL) {
-    re4 = compile("(\\n|\\x0D)");
-  }
-
-  char *output;
-  output =  preg_replace(re4, " ", subject);
-  free(subject);
-  return output;
+  return replace("(\\n|\\x0D)", " ", subject);
 }
 
 
 char *cleanse_article_link_markup(char *subject) {
-  static pcre2_code *re5  = NULL;
-
-  if(re5 == NULL) {
-    re5 = compile("\\[.+?\\]\\(\\d+\\s\\\".*?\\\"\\)");
-  }
-  char *output;
-  output =  preg_replace(re5, "", subject);
-  free(subject);
-  return output;
+  return replace("\\[.+?\\]\\(\\d+\\s\\\".*?\\\"\\)", "", subject);
 }
 
 char *cleanse_non_ascii_characters(char *subject) {
-  static pcre2_code *re6  = NULL;
-
-  if(re6 == NULL) {
-    re6 = compile("[^\\x00-\\x7F]");
-  }
-  char *output;
-  output = preg_replace(re6, "", subject);
-  free(subject);
-  return output;
+  return replace("[^\\x00-\\x7F]", "", subject);
 }
 
 char *cleanse_preceding_special_characters(char *subject) {
-  static pcre2_code *re7  = NULL;
-
-  if(re7 == NULL) {
-    re7 = compile("(^|\\s|\\.\\,)([\\@\\#\\$])+\\b");
-  }
-
-  char *output;
-  output = preg_replace(re7, " ", subject);
-  free(subject);
-  return output;
+  return replace("(^|\\s|\\.\\,)([\\@\\#\\$])+\\b", " ", subject);
 }
 
 char *cleanse_following_special_characters(char *subject) {
-  static pcre2_code *re8  = NULL;
-
-  if(re8 == NULL) {
-    re8 = compile("\\b([\\!\\?\\%\\.\\,\\:\\;\\/\\$])+(\\Z|\\s|\\.|\\,)");
-  }
-  char *output;
-  output = preg_replace(re8, " ",subject);
-  free(subject);
-  return output;
+  return replace("\\b([\\!\\?\\%\\.\\,\\:\\;\\/\\$])+(\\Z|\\s|\\.|\\,)", " ",subject);
 }
 
 char *cleanse(char *subject) {
