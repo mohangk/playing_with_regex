@@ -6,4 +6,6 @@
 
 char *preg_replace(char *pattern, char *replacement, char *subject);
 
+int preg_match(char *pattern, char *subject, char *matches[]);
+
 #endif

@@ -26,7 +26,7 @@ LFLAGS = -L/usr/local/lib
 LIBS = -lpcre2-8
 
 # define the C source files
-SRCS = test_text_matcher.c  preg_replace.c
+SRCS = test_text_cleanser.c text_cleanser.c preg_replace.c
 
 # define the C object files 
 #
@@ -39,7 +39,7 @@ SRCS = test_text_matcher.c  preg_replace.c
 OBJS = $(SRCS:.c=.o)
 
 # define the executable file 
-MAIN = test_text_matcher
+MAIN = test_text_cleanser
 
 #
 # The following part of the makefile is generic; it can be used to 

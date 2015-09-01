@@ -55,14 +55,58 @@ pcre2_code *get_compiled_re(char *re)
     re_cache_item->re = strndup(re, strlen(re));
     re_cache_item->compiled_re = compile(re_cache_item->re);
     HASH_ADD_KEYPTR(hh, active_re_cache, re_cache_item->re, strlen(re_cache_item->re), re_cache_item);
-  }   
+  }
   return re_cache_item->compiled_re;
 }
 
 
+int preg_match(char *pattern, char *subject, char *matches[]) {
+  int rc;
+  //int count;
+  PCRE2_SIZE *ovector;
+
+  pcre2_code *compiled_re = get_compiled_re(pattern);
+
+  PCRE2_SPTR pcre2_subject = (PCRE2_SPTR)subject;
+  size_t subject_length = strlen((char *)subject);
+
+  pcre2_match_data *match_data;
+
+  match_data = pcre2_match_data_create_from_pattern(compiled_re, NULL);
+
+  rc = pcre2_match(
+              compiled_re,
+              pcre2_subject,
+              subject_length,
+              0,
+              0,
+              match_data,
+              NULL);
+
+  if (rc < 1) {
+    pcre2_match_data_free(match_data);   /* Release memory used for the match */
+    pcre2_code_free(compiled_re);                 /* data and the compiled pattern. */
+    return 0;
+  }
+
+  ovector = pcre2_get_ovector_pointer(match_data);
+
+  matches = malloc(rc * sizeof(char*));
+
+  for (int i = 0; i < rc; i++)
+  {
+    PCRE2_SPTR substring_start = pcre2_subject + ovector[2*i];
+    size_t substring_length = ovector[2*i+1] - ovector[2*i];
+    //printf("%2d: %.*s\n", i, (int)substring_length, (char *)substring_start);
+    matches[i] = strndup((char *)substring_start, (int)substring_length);
+  }
+
+  return rc;
+}
+
 char *preg_replace(char *re, char *replacement, char *subject) {
   int rc;
- 
+
   pcre2_code *compiled_re = get_compiled_re(re);
 
   PCRE2_SPTR pcre2_subject = (PCRE2_SPTR)subject;
@@ -92,12 +136,12 @@ char *preg_replace(char *re, char *replacement, char *subject) {
   if (rc < 0) {
 
     switch(rc) {
-      case PCRE2_ERROR_NOMEMORY: 
+      case PCRE2_ERROR_NOMEMORY:
         printf("Output buffer not large enough\n"); break;
       case PCRE2_ERROR_BADREPLACEMENT:
         printf("Invalid replacement string %s\n", replacement); break;
-      default: 
-       printf("Unknown error %d \n", rc); break; 
+      default:
+       printf("Unknown error %d \n", rc); break;
     }
 
     exit(1);
